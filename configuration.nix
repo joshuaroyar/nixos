@@ -1,173 +1,183 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
-	imports =
-	[
-		./hardware-configuration.nix
-	];
+  imports = [
+    ./hardware-configuration.nix
+  ];
 
-	# Boot
-	boot.loader.systemd-boot.enable = true;
- 	boot.loader.efi.canTouchEfiVariables = true;
- 	boot.initrd.systemd.enable = true;
+  # Boot
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+  boot.initrd.systemd.enable = true;
 
-	# Networking
-	networking.hostName = "nixos";
-	networking.networkmanager.enable = true;
+  # Networking
+  networking.hostName = "nixos";
+  networking.networkmanager.enable = true;
 
-	hardware.enableRedistributableFirmware = true;
- 
-	# Locale
-	time.timeZone = "Asia/Kolkata";
-	i18n.defaultLocale = "en_US.UTF-8";
-  
-	# Nix
-	nix.settings.experimental-features = [
-		"nix-command"
-		"flakes"
-	];
+  hardware.enableRedistributableFirmware = true;
 
-	nix.settings.auto-optimise-store = true;
+  # Locale
+  time.timeZone = "Asia/Kolkata";
+  i18n.defaultLocale = "en_US.UTF-8";
+
+  # Nix
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
+
+  nix.settings.auto-optimise-store = true;
 
   nix.gc = {
-		automatic = true;
-		dates = "weekly";
-		options = "--delete-older-than 30d";
-	};
-		
-	# User Accounts
-	users.users.joshua = {
-		isNormalUser = true;
-		description = "Joshua";
- 		extraGroups = [
-			"wheel"
-			"networkmanager"
- 		];
-		shell = pkgs.fish;
-	};
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 30d";
+  };
 
-	# Shell
-	programs.fish.enable = true;
+  # User Accounts
+  users.users.joshua = {
+    isNormalUser = true;
+    description = "Joshua";
+    extraGroups = [
+      "wheel"
+      "networkmanager"
+    ];
+    shell = pkgs.fish;
+  };
 
-	# Niri
-	programs.niri.enable = true;
+  # Fonts
+  fonts.fontconfig.enable = true;
+  fonts.packages = with pkgs; [
+    nerd-fonts.jetbrains-mono
+  ];
 
-	systemd.user.services.niri.enableDefaultPath = false;
+  # Shell
+  programs.fish.enable = true;
 
-	# Display Manager
-	programs.regreet = {
-		enable = true;
+  # Niri
+  programs.niri.enable = true;
 
-		settings = {
-			GTK = {
-				application_prefer_dark_theme = lib.mkDefault true;
-				theme_name = lib.mkDefault "Adwaita Dark";
-				icon_theme_name = lib.mkDefault "Adwaita";
-				cursor_theme_name = lib.mkDefault "Adwaita";
-				font_name = lib.mkDefault "Cantarell 12";
-			};
+  systemd.user.services.niri.enableDefaultPath = false;
 
-			background = {
-				fit = "Cover";
-			};
-		};
-	};
+  # Display Manager
+  programs.regreet = {
+    enable = true;
 
-	# Login Manager
-	services.greetd = {
-		enable = true;
+    settings = {
+      GTK = {
+        application_prefer_dark_theme = lib.mkDefault true;
+        theme_name = lib.mkDefault "Adwaita Dark";
+        icon_theme_name = lib.mkDefault "Adwaita";
+        cursor_theme_name = lib.mkDefault "Adwaita";
+        font_name = lib.mkDefault "Cantarell 12";
+      };
 
-		settings = {
-			default_session = {
-				command = "${pkgs.cage}/bin/cage -s -- ${pkgs.regreet}/bin/regreet";
+      background = {
+        fit = "Cover";
+      };
+    };
+  };
 
-				user = "greeter";
-			};
-		};
-	};
+  # Login Manager
+  services.greetd = {
+    enable = true;
 
-	# Wayland
-	environment.sessionVariables = {
-		NIXOS_OZONE_WL = "1";
-	};
+    settings = {
+      default_session = {
+        command = "${pkgs.cage}/bin/cage -s -- ${pkgs.regreet}/bin/regreet";
 
-	# Audio
-	services.pipewire.enable = true;
-	security.rtkit.enable = true;
-	
-	# Bluetooth
-	hardware.bluetooth.enable = true;
+        user = "greeter";
+      };
+    };
+  };
 
-	# Podman
-	virtualisation.podman = {
-		enable = true;
+  # Wayland
+  environment.sessionVariables = {
+    NIXOS_OZONE_WL = "1";
+  };
 
-		dockerCompat = true;
-		
-		defaultNetwork.settings.dns_enabled = true;
-	};
+  # Audio
+  services.pipewire.enable = true;
+  security.rtkit.enable = true;
 
-	virtualisation.containers = {
-		enable = true;
+  # Bluetooth
+  hardware.bluetooth.enable = true;
 
-		registries.search = [
-			"docker.io"
-			"ghcr.io"
-		];
-	};
+  # Podman
+  virtualisation.podman = {
+    enable = true;
 
-	# Pokit / Desktop Services
-	security.polkit.enable = true;
+    dockerCompat = true;
 
-	services.gnome.gnome-keyring.enable = true;
-	
-	# SSH
-	services.openssh.enable = true;
+    defaultNetwork.settings.dns_enabled = true;
+  };
 
-	# Security
-	networking.firewall.enable = true;
+  virtualisation.containers = {
+    enable = true;
 
-	security.pam.services.swaylock = {};
-	
-	# System Utilities
-	environment.systemPackages = with pkgs; [
-		# Basic utilities
-		curl
-		wget
-		git
-		unzip
-		zip
-		file
-		tree
+    registries.search = [
+      "docker.io"
+      "ghcr.io"
+    ];
+  };
 
-		# Hardware
-		pciutils
-		usbutils
-		lsof
+  # Pokit / Desktop Services
+  security.polkit.enable = true;
 
-		# Networking
-		inetutils
+  services.gnome.gnome-keyring.enable = true;
 
-		# Monitoring
-		btop
+  # SSH
+  services.openssh.enable = true;
 
-		# Build
-		clang
-		clang-tools
-		gnumake
-		pkg-config
+  # Security
+  networking.firewall.enable = true;
 
-		# Containers
-		podman
-		podman-compose
-		buildah
-		skopeo
+  security.pam.services.swaylock = { };
 
-		# Misc
-		cage
-		brightnessctl	
-	];
+  # System Utilities
+  environment.systemPackages = with pkgs; [
+    # Basic utilities
+    curl
+    wget
+    git
+    unzip
+    zip
+    file
+    tree
 
-	# System version
-	system.stateVersion = "26.05";
+    # Hardware
+    pciutils
+    usbutils
+    lsof
+
+    # Networking
+    inetutils
+
+    # Monitoring
+    btop
+
+    # Build
+    clang
+    clang-tools
+    gnumake
+    pkg-config
+
+    # Containers
+    podman
+    podman-compose
+    buildah
+    skopeo
+
+    # Misc
+    cage
+    brightnessctl
+  ];
+
+  # System version
+  system.stateVersion = "26.05";
 }
