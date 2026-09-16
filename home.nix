@@ -9,6 +9,19 @@
 		stateVersion = "26.05";
 	};
 
+	# Git configuration
+	programs.git = {
+		enable = true;
+		userName = "joshua";
+		userEmail = "joshuaroyar@gmail.com";
+
+		settings = {
+			init.defaultBranch = "main";
+			pull.rebase = true;
+			push.autoSetupRemote = true;
+		};
+	};
+	
 	# User packages
 	home.packages = with pkgs; [
 		# Fonts
@@ -212,18 +225,7 @@
 			background_opacity = "0.8";
 		};
 	};
-
-	# Git
-	programs.git = {
-		enable = true;
-
-		settings = {
-			init.defaultBranch = "main";
-			pull.rebase = true;
-			push.autoSetupRemote = true;
-		};
-	};
-
+	
 	# Helix
 	programs.helix = {
 		enable = true;
