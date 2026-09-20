@@ -32,6 +32,7 @@
   home.packages = with pkgs; [
     # Terminal
     kitty
+    xdg-terminal-exec
 
     # Shells
     fish
@@ -40,8 +41,12 @@
 
     # Editor
     helix
+    zed-editor
+    (writeShellScriptBin "zed" ''
+        exec ${nixgl.nixVulkanIntel}/bin/nixVulkanIntel ${zed-editor}/bin/zed "$@"
+    '')
 
-    # Browser
+    #  Browser
     inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
 
     # Desktop
@@ -60,6 +65,11 @@
     zip
     wget
     curl
+    wl-clipboard
+
+    # Players
+    mpv
+    vlc
 
     # Search
     ripgrep
@@ -120,14 +130,26 @@
     # C/C++
     clang
     clang-tools
+
+    # Office
+    libreoffice
   ];
 
   # Configure default terminal for apps
-  xdg.configFile."xdg-terminal-exec/menu.config".text = ''
-    	[Default]
-      terminal=kitty
+  xdg.configFile."xdg-terminals.list".text = ''
+    	kitty.desktop
   '';
 
+  xdg.mimeApps = {
+    enable = true;
+    defaultApplications = {
+      "x-scheme-handler/terminal" = [ "kitty.desktop" ];
+    };
+  };
+
+  # Mpv
+  programs.mpv.enable = true;
+  
   # Fish
   programs.fish = {
     enable = true;
@@ -223,6 +245,194 @@
       strip_trailing_spaces = "smart";
 
       background_opacity = "0.8";
+    };
+  };
+
+  # Zellij
+  programs.zellij = {
+    enable = true;
+    enableFishIntegration = true;
+
+    settings = {
+      # General
+      default_mode = "normal";
+      pane_frames = false;
+      mouse_mode = true;
+      scroll_buffer_size = 10000;
+
+      # Wayland clipboard
+      copy_clipboard = "system";
+      copy_command = "wl-copy";
+
+      # Session persistence
+      session_serialization = true;
+      pane_viewport_serialization = true;
+      scrollback_lines_to_serialize = 10000;
+
+      # Keybindings
+      keybinds = {
+        normal._children = [
+          # Pane navigation
+          {
+            bind = {
+              _args = [ "Alt h" ];
+              _children = [
+                { MoveFocusOrTab._args = [ "left" ]; }
+              ];
+            };
+          }
+
+          {
+            bind = {
+              _args = [ "Alt j" ];
+              _children = [
+                { MoveFocus._args = [ "down" ]; }
+              ];
+            };
+          }
+
+          {
+            bind = {
+              _args = [ "Alt k" ];
+              _children = [
+                { MoveFocus._args = [ "up" ]; }
+              ];
+            };
+          }
+
+          {
+            bind = {
+              _args = [ "Alt l" ];
+              _children = [
+                { MoveFocusOrTab._args = [ "right" ]; }
+              ];
+            };
+          }
+
+          # New Fish pane
+          {
+            bind = {
+              _args = [ "Alt f" ];
+              _children = [
+                {
+                  Run._args = [ "fish" ];
+                }
+              ];
+            };
+          }
+
+          # New Nushell pane
+          {
+            bind = {
+              _args = [ "Alt n" ];
+              _children = [
+                {
+                   Run._args = [ "nu" ];
+                }
+              ];
+            };
+          }
+
+          # New tab
+          {
+            bind = {
+              _args = [ "Alt t" ];
+              _children = [
+                { NewTab = { }; }
+              ];
+            };
+          }
+
+          # Previous tab
+          {
+            bind = {
+              _args = [ "Alt [" ];
+              _children = [
+                { GoToPreviousTab = { }; }
+              ];
+            };
+          }
+
+          # Next tab
+          {
+            bind = {
+              _args = [ "Alt ]" ];
+              _children = [
+                { GoToNextTab = { }; }
+              ];
+            };
+          }
+
+          # Toggle fullscreen pane
+          {
+            bind = {
+              _args = [ "Alt Enter" ];
+              _children = [
+                { ToggleFocusFullscreen = { }; }
+              ];
+            };
+          }
+
+          # Toggle floating panes
+          {
+            bind = {
+              _args = [ "Alt Space" ];
+              _children = [
+                { ToggleFloatingPanes = { }; }
+              ];
+            };
+          }
+
+          # Detach
+          {
+            bind = {
+              _args = [ "Alt d" ];
+              _children = [
+                { Detach = { }; }
+              ];
+            };
+          }
+        ];
+
+        # Dedicated resize mode
+        resize._children = [
+          {
+            bind = {
+              _args = [ "h" ];
+              _children = [
+                { Resize = [ "left" ]; }
+              ];
+            };
+          }
+
+          {
+            bind = {
+              _args = [ "j" ];
+              _children = [
+                { Resize = [ "down" ]; }
+              ];
+            };
+          }
+
+          {
+            bind = {
+              _args = [ "k" ];
+              _children = [
+                { Resize = [ "up" ]; }
+              ];
+            };
+          }
+
+          {
+            bind = {
+              _args = [ "l" ];
+              _children = [
+                { Resize = [ "right" ]; }
+              ];
+            };
+          }
+        ];
+      };
     };
   };
 
@@ -472,6 +682,11 @@
     };
   };
 
+  # Zed
+  programs.zed-editor = {
+    enable = true;
+  };
+
   # Vicinae
   programs.vicinae = {
     enable = true;
@@ -488,9 +703,12 @@
 
     settings = {
       color = "1a1b26";
+      font-size = 24;
       ignore-empty-password = true;
       show-failed-attempts = true;
       indicator = true;
+      indicator-radius = 100;
+      indicator-idle-visible = false;
       clock = true;
       timestr = "%H:%M";
       datestr = "%A, %d %B";

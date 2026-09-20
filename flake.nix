@@ -4,6 +4,8 @@
 	inputs = {
 		nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
+		nixgl.url = "github:nix-community/nixGL";
+		
 		home-manager = {
 			url = "github:nix-community/home-manager/release-26.05";
 			inputs.nixpkgs.follows = "nixpkgs";
@@ -23,6 +25,7 @@
 	outputs = inputs@{
 		self,
 		nixpkgs,
+		nixgl,
 		home-manager,
 		zen-browser,
 		vicinae,
@@ -44,6 +47,8 @@
 				vicinae.nixosModules.default
 
 				{
+					nixpkgs.overlays = [ nixgl.overlay ];
+					
 					home-manager.useGlobalPkgs = true;
 					home-manager.useUserPackages = true;
 
